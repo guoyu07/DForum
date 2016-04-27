@@ -1,5 +1,5 @@
 {% extends 'snippet/layout.html' %}
-{% load forum_extras %}
+{% load dforum_extras %}
 
 {% block main %}
     {% comment %}
@@ -66,7 +66,7 @@
 
         {% if topic_page.pages > 1 %}
         <div class="pagination">
-            {% pagination topic_page request.get_full_path %}
+{#            {% pagination topic_page request.get_full_path %}#}
         </div>
         {% endif %}
     </div>
@@ -96,7 +96,7 @@
         <div class="usercard container-box">
             <div class="ui-header">
                 <a href="/u/{{ user.username }}/">
-                    <img src="/static/avatar/m_{% if user.avatar %}{{ user.avatar }}{% else %}default.png{% endif %}?t={% gen_random %}" alt="" class="avatar" />
+{#                    <img src="/static/avatar/m_{% if user.avatar %}{{ user.avatar }}{% else %}default.png{% endif %}?t={% gen_random %}" alt="" class="avatar" />#}
                 </a>
                 <div class="username">{{ user.username }}</div>
                 <div class="website"><a href="{% if user.website %}{{ user.website }}{% endif %}">{% if user.website %}{{ user.website }}{% endif %}</a></div>
@@ -140,7 +140,7 @@
             <span class="title">微信公共帐号</span>
         </div>
         <div class="ui-content">
-            <img src="/static/images/qrcode_for_gh_81ac76ebf8e3_258.jpg" alt="" />
+{#            <img src="/static/images/qrcode_for_gh_81ac76ebf8e3_258.jpg" alt="" />#}
         </div>
     </div>
 
