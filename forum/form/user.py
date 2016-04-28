@@ -1,5 +1,6 @@
 # coding=utf-8
 from django import forms
+from django.contrib.auth import authenticate
 from forum.models import User
 from DForum import settings
 error_message={
@@ -72,3 +73,25 @@ class RegisterForm(forms.ModelForm):
         if user:
             user.save()
         return user
+
+class LoginForm(forms.Form):
+    '''
+        登陆表单
+    '''
+    email=forms.EmailField(min_length=4,max_length=64,
+                          error_messages=error_message['email'])
+    password=forms.CharField(min_length=6,max_length=64,
+                             error_messages=error_message['password'],
+                             widget=forms.PasswordInput)
+    def clean(self):
+        email=self.cleaned_data['email']
+        password=self.cleaned_data['password']
+        if email and password:
+            self.user=authenticate(username=email,password=password)
+            if not self.user:
+                raise forms.ValidationError(u'用户名或密码错误')
+            elif not self.user.is_active:
+                raise forms.ValidationError(u'你的账户被锁定,请联系管理员')
+        return self.cleaned_data
+    def get_user(self):
+        return self.user
