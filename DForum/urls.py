@@ -19,6 +19,6 @@ from django.contrib import admin
 from forum.views import topic
 import forum.urls
 urlpatterns = [
-    url(r'^',include(forum.urls)),
+    url(r'^',include(forum.urls,namespace='forum')),
     url(r'^admin/', admin.site.urls),
 ]

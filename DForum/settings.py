@@ -1,3 +1,4 @@
+# encoding=utf-8
 """
 Django settings for DForum project.
 
@@ -119,3 +120,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
+
+#自定义的用户模型
+AUTH_USER_MODEL = 'forum.User'
+# 自定义的认证后端
+AUTHENTICATION_BACKENDS = ('forum.backends.AuthBackend',)
+
+#自定义的用户名保留字段
+RESERVED = ["user", "topic", "home", "setting", "forgot", "login", "logout", "register", "admin"]
