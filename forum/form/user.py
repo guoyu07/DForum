@@ -95,3 +95,66 @@ class LoginForm(forms.Form):
         return self.cleaned_data
     def get_user(self):
         return self.user
+class SettingForm(forms.Form):
+    '''
+        用户设置表单
+    '''
+    username = forms.CharField() # 不能修改
+    email = forms.EmailField() # 不能修改
+    nickname = forms.CharField(min_length=3, max_length=12, required=False,
+        error_messages={
+            'min_length': u'昵称长度过短（3-12个字符）',
+            'max_length': u'昵称长度过长（3-12个字符）',
+        })
+    signature = forms.CharField(required=False)
+    location = forms.CharField(required=False)
+    website = forms.URLField(required=False,
+        error_messages={
+            'invalid': u'请填写合法的URL地址）',
+        })
+    company = forms.CharField(required=False)
+    github = forms.CharField(required=False)
+    twitter = forms.CharField(required=False)
+    douban = forms.CharField(required=False)
+    self_intro = forms.CharField(required=False)
+
+class SettingPassForm(forms.Form):
+    password_old=forms.CharField(min_length=6,max_length=12,widget=forms.PasswordInput,
+                                 error_messages=error_message['password'])
+    password=forms.CharField(min_length=6,max_length=12,widget=forms.PasswordInput,
+                             error_messages=error_message['password'])
+    password_confirm=forms.CharField(min_length=6,max_length=12,widget=forms.PasswordInput,
+                                     error_messages=error_message['password_confirm'])
+    def __init__(self,request):
+        self.user=request.user
+        super(SettingPassForm,self).__init__(request.POST)
+    def clean(self):
+        passwrod_old=self.cleaned_data['password_old']
+        passwrod=self.cleaned_data['password']
+        passwrod_confirm=self.cleaned_data['password_confirm']
+        if not (passwrod_old and self.user.check_password(passwrod_old)):
+            raise forms.ValidationError(u'旧密码错误')
+        if passwrod!=passwrod_confirm:
+            return forms.ValidationError(u'两次密码不一致')
+        return self.cleaned_data
+
+class ForgotForm(forms.Form):
+    '''
+        忘记密码表单
+    '''
+    username=forms.CharField(min_length=6,max_length=64,
+                             error_messages=error_message['username'])
+    email=forms.CharField(min_length=6,max_length=64,
+                          error_messages=error_message['email'])
+    def clean(self):
+        username=self.cleaned_data['username']
+        email=self.cleaned_data['email']
+        if username and email:
+            try:
+                self.user=User.objects.get(email=email,username=username)
+            except User.DoesNotExist:
+                raise forms.ValidationError(u'用户名或者邮箱错误')
+        return self.cleaned_data
+    def get_user(self):
+        return self.user
+

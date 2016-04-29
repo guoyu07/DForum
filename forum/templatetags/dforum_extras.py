@@ -4,6 +4,7 @@
 自定义的过滤器
 '''
 from django import template
+import random
 register=template.Library()
 @register.filter
 def pretty_date(time=None):
@@ -21,3 +22,6 @@ def dump_errors(errors):
         ''')
     c = template.Context(dict(errors=errors))
     return t.render(c)
+@register.simple_tag
+def gen_random():
+    return random.random()

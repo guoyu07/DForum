@@ -128,3 +128,13 @@ AUTHENTICATION_BACKENDS = ('forum.backends.AuthBackend',)
 
 #自定义的用户名保留字段
 RESERVED = ["user", "topic", "home", "setting", "forgot", "login", "logout", "register", "admin"]
+
+# 默认登陆uri
+LOGIN_URL = '/login/'
+
+# 发送邮件设置
+EMAIL_HOST = 'smtp.163.com'
+EMAIL_PORT = 25
+EMAIL_HOST_USER= 'cc95979801@163.com'
+EMAIL_HOST_PASSWORD= 'cc887652'
+DEFAULT_FROM_EMAIL = 'cc95979801@163.com'
