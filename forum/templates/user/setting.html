@@ -8,9 +8,11 @@
                 <div id="legend">
                     <legend class="">用户信息设置</legend>
                 </div>
-                {% if success_message %}
+                {% if messages %}
                 <ul class="alert alert-success">
-                    <li>{{ success_message }}</li>
+                    {% for msg in messages %}
+                    <li>{{ msg }}</li>
+                    {% endfor %}
                 </ul>
                 {% endif %}
                 {{ errors|dump_errors }}

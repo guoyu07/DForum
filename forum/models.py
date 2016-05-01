@@ -1,12 +1,44 @@
 # encoding=utf-8
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+class Pages(object):
+    '''
+        分页查询类
+    '''
+    def __init__(self, count, current_page=1, list_rows=40):
+        self.total = count
+        self._current = current_page
+        self.size = list_rows
+        self.pages = self.total // self.size + (1 if self.total % self.size else 0)
+
+        if (self.pages == 0) or (self._current < 1) or (self._current > self.pages):
+            self.start = 0
+            self.end = 0
+            self.index = 1
+        else:
+            self.start = (self._current - 1) * self.size
+            self.end = self.size + self.start
+            self.index = self._current
+        self.prev = self.index - 1 if self.index > 1 else self.index
+        self.next = self.index + 1 if self.index < self.pages else self.index
 
 class TopicManager(models.Manager):
-    pass
+    def get_all_topic(self, num=36, current_page=1): # 可以考虑在这里过滤掉没有头像的用户发帖，不显示在主页
+        count = self.get_queryset().count()
+        page = Pages(count, current_page, num)
+        query = self.get_queryset().select_related('node', 'author', 'last_replied_by').\
+            all().order_by('-last_touched', '-created', '-last_replied_time', '-id')[page.start:page.end]
+        return query, page
 class NodeManager(models.Manager):
     def get_hot_node(self):
         pass
+
+class ReplyManager(models.Manager):
+    def get_all_replies(self,t_id,current_page=1,num=20):
+        count=self.get_queryset().filter(topic__id=t_id).count()
+        page=Pages(count,current_page,num)
+        query=self.get_queryset().select_related('author').filter(topic__id=t_id).order_by('id')[page.start:page.end]
+        return query,page
 
 class User(AbstractUser):
     '''
@@ -77,3 +109,16 @@ class Topic(models.Model):
 
     objects = TopicManager()
 
+class Reply(models.Model):
+    '''
+        帖子的回复
+    '''
+    topic = models.ForeignKey(Topic, null=True, blank=True)
+    author = models.ForeignKey(User, related_name='reply_author', null=True, blank=True)
+    content = models.TextField(null=True, blank=True)
+    created = models.DateTimeField(null=True, blank=True)
+    updated = models.DateTimeField(null=True, blank=True)
+    up_vote = models.IntegerField(null=True, blank=True)
+    down_vote = models.IntegerField(null=True, blank=True)
+    last_touched = models.DateTimeField(null=True, blank=True)
+    objects=ReplyManager()

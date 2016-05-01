@@ -1,7 +1,7 @@
 # encoding=utf-8
 from django.shortcuts import render,redirect
 from django.core.urlresolvers import reverse
-from django.contrib import auth
+from django.contrib import auth,messages
 from django.contrib.auth.decorators import login_required
 from django.template import loader,Context
 from django.utils import timezone
@@ -20,8 +20,7 @@ def register(request):
     else:
         form=RegisterForm(request.POST)
         if not form.is_valid():
-            print form.errors
-            return render(request, 'user/register.html')
+            return render(request, 'user/register.html',locals())
         user=form.save()
         if user:
             #发送邮件
@@ -64,7 +63,7 @@ def setting(request):
     else:
         form=SettingForm(request.POST)
         if not form.is_valid():
-            return render(request,'user/setting.html',{'errors':'form.errors'})
+            return render(request,'user/setting.html',{'errors':form.errors})
         user=request.user
         cp=copy.copy(form.cleaned_data)
         cp.pop('username')
@@ -73,6 +72,7 @@ def setting(request):
             setattr(user,k,v)
         user.updated=timezone.now()
         user.save()
+        messages.add_message(request,messages.SUCCESS,u'用户资料在更成功')
         return render(request,'user/setting.html',{'success_message':u'用户资料在更成功'})
 
 @login_required
@@ -84,7 +84,6 @@ def setting_avatar(request):
         return render(request,'user/setting_avatar.html')
     else:
         if not 'avatar' in request.FILES:
-            print type(request.FILES)
             return render(request,'user/setting_avatar.html',
                           errors={'invalid_avatar': [u'请先选择要上传的头像'],})
         user = request.user
