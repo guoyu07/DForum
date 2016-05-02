@@ -64,7 +64,7 @@ def topic_create(request, slug):
     #User的声誉
     return render(request, 'topic/create.html', locals())
 
-def reply(request,t_id):
+def reply_create(request,t_id):
     '''
         创建回复
     '''
@@ -73,20 +73,18 @@ def reply(request,t_id):
             topic=Topic.objects.select_related('author').get(pk=t_id)
         except Topic.DoesNotExist:
             return Http404
-        form=ReplyForm(request.POST)
+        form = CreateForm(request.POST)
         if form.is_valid():
-            user=request.user
-            #回复重复验证
-
-            now=timezone.now()
-            reply=Reply(topic=topic,
-                        author=user,
-                        content=form.cleaned_data['content'],
-                        created=now)
-            reply.save()
-            Topic.objects.filter(pk=t_id).update(last_replied_by=user,last_replied_time=now,
-                                                 last_touched=now,reply_count=topic.reply_count+1)
-            return redirect(reverse('forum:reply',args=[t_id])+'#reply'+str(topic.reply_count+1))
+            user = request.user
+            topic = Topic(title=form.cleaned_data['title'],
+                          content=form.cleaned_data['content'],
+                          created=timezone.now(),
+                          node=node,
+                          author=user,
+                          reply_count=0,
+                          last_touched=timezone.now())
+            topic.save()
+            return redirect(reverse('forum:index'))
 
     topic = Topic.objects.get(pk=t_id)
     reply_last_page = (topic.reply_count // 20 + (topic.reply_count % 20 and 1)) or 1
@@ -98,6 +96,9 @@ def reply(request,t_id):
     return render(request, 'topic/view.html', locals())
 @login_required
 def reply_edit(request,id):
+    '''
+        用户回复修改
+    '''
     print request.POST
     reply=get_object_or_404(Reply,pk=id)
     user=request.user
@@ -114,5 +115,26 @@ def reply_edit(request,id):
     }
     # active_page='topic'
     return  render(request,'topic/reply_edit.html',locals())
+
+@login_required
+def topic_edit(request,t_id):
+    topic=get_object_or_404(Topic,pk=t_id)
+    user=request.user
+    if request.method == "POST":
+        form=CreateForm(request)
+        if form.is_valid():
+            user = request.user
+            topic.title=form.cleaned_data['title']
+            topic.content=form.cleaned_data['content']
+            topic.save()
+            return redirect(reverse('forum:index'))
+    counter = {
+        'topics': user.topic_author.all().count(),
+        'replies': user.reply_author.all().count(),
+        # 'favorites': user.fav_user.all().count()
+    }
+    #notification
+    return render(request,'topic/edit.html',locals())
+
 
 

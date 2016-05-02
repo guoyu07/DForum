@@ -14,8 +14,8 @@ urlpatterns = [
     url(r'^setting/password/$',user.seting_password,name='seeting_password'),
     url(r'^forgot/$',user.forgot,name='forgot'),
     url(r'^t/create/(.*)/$',topic.topic_create,name='topic_create'),
-    # url(r'^t/(\d+)/$',topic.topic,name='topic'),
-    url(r'^t/(\d+)/reply/$',topic.reply,name='reply'),
+    url(r'^t/(\d+)/reply/$',topic.reply_create,name='reply'),
+    url(r'^t/edit/(\d+)/$',topic.topic_edit,name='edit'),
     url(r'^reply/edit/(\d+)/$',topic.reply_edit,name='reply_edit'),
     url(r'^admin/', admin.site.urls),
 ]
