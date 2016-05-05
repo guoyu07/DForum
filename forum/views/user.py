@@ -30,7 +30,6 @@ def register(request):
         return redirect(reverse('forum:login'))
 
 def login(request):
-    print type(request)
     '''
         处理登陆请求
     '''
@@ -44,7 +43,6 @@ def login(request):
         user=form.get_user()
         if user:
             auth.login(request,user)
-        print user.is_staff
         if user.is_staff:
             return redirect(request.POST.get('next') or request.GET.get('next', '/'))
         return redirect(reverse('forum:index'))

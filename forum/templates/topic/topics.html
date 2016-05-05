@@ -2,16 +2,16 @@
 {% load dforum_extras %}
 
 {% block main %}
-    {% comment %}
-    <ul class="news container-box">
-        <li><a href="#">HTML5(目前)无法帮你实现的五件事</a></li>
-        <li><a href="#">DNS优化的原理和方法</a></li>
-        <li><a href="#">浅谈互联网产品前期设计方法</a></li>
-        <li><a href="#">如何在Google成为优秀的产品经理?</a></li>
-        <li><a href="#">页面前端的水有多深？</a></li>
-        <li><a href="#">如何利用互联网工具调研网站</a></li>
-    </ul>
-    {% endcomment %}
+{#    {% comment %}#}
+{#    <ul class="news container-box">#}
+{#        <li><a href="#">HTML5(目前)无法帮你实现的五件事</a></li>#}
+{#        <li><a href="#">DNS优化的原理和方法</a></li>#}
+{#        <li><a href="#">浅谈互联网产品前期设计方法</a></li>#}
+{#        <li><a href="#">如何在Google成为优秀的产品经理?</a></li>#}
+{#        <li><a href="#">页面前端的水有多深？</a></li>#}
+{#        <li><a href="#">如何利用互联网工具调研网站</a></li>#}
+{#    </ul>#}
+{#    {% endcomment %}#}
 
     <div class="topics container-box deprecated-mt10">
         <div class="ui-header">
@@ -26,7 +26,6 @@
                 </ul>
             </div>
             <span class="bread-nav">
-                {# 在这里写你自己写推荐的node,或者其它链接,参考F2E.im #}
                 <a class="node-link" href="/node/share/">分享</a>
             </span>
         </div>
@@ -137,10 +136,11 @@
 
     <div class="sidebox container-box mt10 weixin">
         <div class="ui-header">
-            <span class="title">微信公共帐号</span>
+            <span class="title">网站二维码</span>
         </div>
         <div class="ui-content">
-{#            <img src="/static/images/qrcode_for_gh_81ac76ebf8e3_258.jpg" alt="" />#}
+            {% load static %}
+            <img src="{% static 'images/QRcode.png' %}" alt="" />
         </div>
     </div>
 

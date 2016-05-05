@@ -29,7 +29,11 @@
 
         <div class="ui-content">
             <form class="mt10" action="" method="post">
-                {{ form.errors|dump_errors }}
+                {% if errors %}
+                    {{ errors|dump_errors }}
+                {% else %}
+                    {{ form.errors|dump_errors }}
+                {% endif %}
                 <textarea rows="3" class="content mt5 smart-code-support" placeholder="正文" name="content">{{ reply.content }}</textarea>
                 <input name="rid" type="hidden" value="{{ reply.id }}" />
                 <input type="submit" id="checkall" class="btn btn-small" value="立即修改">

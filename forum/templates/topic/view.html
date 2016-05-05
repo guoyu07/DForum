@@ -2,7 +2,7 @@
 {% load dforum_extras %}
 
 {% block title %}
-    {{ topic.title }} - F2E
+    {{ topic.title }} - DForum
 {% endblock %}
 
 {% block stylesheet %}
@@ -72,6 +72,10 @@
                             _node.attr('data-type', 'favorite');
                         }
                     } else {
+                        if(data.message==='user_not_login')
+                        {
+                            location.href='/login/?next='+location.href
+                        }
                         _node.html('<span>' + _errorMap[data.message] + '</span>');
                     }
                 });
@@ -202,7 +206,7 @@
                 <span class="title">创建新的回复</span>
             </div>
             <div class="ui-content">
-                <form class="mt10" action="{% url 'forum:reply' topic.id %}" method="post">
+                <form class="mt10" action="{% url 'forum:reply_create' topic.id %}" method="post">
                     {{ form.errors|dump_errors }}
                     <textarea rows="3" class="content mt5 smart-code-support J_replyContent" placeholder="回复内容" name="content"></textarea>
                     <input type="submit" id="checkall" class="btn btn-small" value="立即回复">

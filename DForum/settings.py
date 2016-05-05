@@ -56,8 +56,7 @@ ROOT_URLCONF = 'DForum.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')]
-        ,
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -65,6 +64,10 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.contrib.auth.context_processors.auth',  # user对象等等
+                'django.core.context_processors.request',  # request对象等等
+                'django.core.context_processors.static',  # 在模板中使用{{ STATIC_URL }}获取静态文件路径
+                'forum.context_processors.custom_proc',  # 自定义模板上下文处理器
             ],
         },
     },
@@ -101,6 +104,8 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+
 
 
 # Internationalization

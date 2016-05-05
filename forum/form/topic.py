@@ -15,18 +15,15 @@ class CreateForm(forms.Form):
                               error_messages={
                                   'required': u'请填写帖子内容',
                                   'min_length': u'帖子内容长度过短（少于15个字符）',})
-    def __init__(self,request):
-        super(CreateForm,self).__init__(request.POST)
-        self.user=request.user
-        self.topic_id=request.POST.get('tid')
-    def clean(self):
-        try:
-            topic = Topic.objects.get(pk=self.topic_id)
-            if self.user.id != topic.author_id:
-                raise forms.ValidationError(u'没有权限修改该帖子')
-            return self.cleaned_data
-        except Topic.DoesNotExist:
-            raise forms.ValidationError(u'没有权限修改该帖子')
+
+    # def clean(self):
+    #     try:
+    #         topic = Topic.objects.get(pk=self.topic_id)
+    #         if self.user.id != topic.author_id:
+    #             raise forms.ValidationError(u'没有权限修改该帖子')
+    #         return self.cleaned_data
+    #     except Topic.DoesNotExist:
+    #         raise forms.ValidationError(u'没有权限修改该帖子')
 class ReplyForm(forms.Form):
     '''
         回复表单
@@ -34,15 +31,15 @@ class ReplyForm(forms.Form):
     content=forms.CharField(min_length=5,error_messages={'required':u'请输入帖子内容',
                                                          'min_length':u'回复字数不能少于5'})
 
-    def __init__(self,request):
-        super(ReplyForm,self).__init__(request.POST)
-        self.user=request.user
-        self.reply_id=request.POST.get('rid')
-    def clean(self):
-        try:
-            reply=Reply.objects.get()
-            if self.user.id!=reply.author_id:
-                raise forms.ValidationError(u'没有权限修改该回复')
-            return self.cleaned_data
-        except Reply.DoesNotExist:
-            raise forms.ValidationError(u'没有权限修改该回复')
+    # def __init__(self,request):
+    #     super(ReplyForm,self).__init__(request.POST)
+    #     self.user=request.user
+    #     self.reply_id=request.POST.get('rid')
+    # def clean(self):
+    #     try:
+    #         reply=Reply.objects.get(pk=self.reply_id)
+    #         if self.user.id!=reply.author_id:
+    #             raise forms.ValidationError(u'没有权限修改该回复')
+    #         return self.cleaned_data
+    #     except Reply.DoesNotExist:
+    #         raise forms.ValidationError(u'没有权限修改该回复')

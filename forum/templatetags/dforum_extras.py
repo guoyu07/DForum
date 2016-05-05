@@ -44,6 +44,21 @@ def content_process(content):
                      r'<iframe height=498 width=510 src="http://player.youku.com/embed/\1" frameborder=0 allowfullscreen style="width:100%;max-width:510px;"></iframe>',
                      content)
     return content
+
+@register.filter
+def email_mosaic(email):
+    if not email:
+        return ''
+
+    email_name = re.findall(r'^([^@]+)@', email)[0]
+
+    if len(email_name) < 5:
+        email_name = email_name + '***'
+        email = re.sub(r'^([^@]+)@', '%s@' % email_name, email)
+    else:
+        email = re.sub(r'[^@]{3}@', '***@', email)
+
+    return email
 @register.simple_tag
 def pagination(page, uri, list_rows = 10): # 显示分页
     def gen_page_list(current_page = 1, total_page = 1, list_rows = 10):
@@ -57,7 +72,7 @@ def pagination(page, uri, list_rows = 10): # 显示分页
             return range(current_page - list_rows // 2, current_page - list_rows // 2 + list_rows)
 
     t = template.Template('''
-        {% load forum_extras %} {# 如果要使用自定义tag filter这里也需要加载 #}
+        {% load dforum_extras %}
         {% if page and page.pages > 1 %}
             <ul>
                 <li {% ifequal page.index page.prev %}class="disabled"{% endifequal %}><a href="{% build_uri uri 'p' page.prev %}">«</a></li>
@@ -82,3 +97,10 @@ def pagination(page, uri, list_rows = 10): # 显示分页
 def gen_random():
     return random.random()
 
+@register.simple_tag
+def build_uri(uri, param, value): # 给uri添加参数或者修改参数的值
+    regx = re.compile('[\?&](%s=[^\?&]*)' % param)
+    find = regx.search(uri)
+    split = '&' if re.search(r'\?', uri) else '?'
+    if not find: return '%s%s%s=%s' % (uri, split, param, value)
+    return re.sub(find.group(1), '%s=%s' % (param, value), uri)
