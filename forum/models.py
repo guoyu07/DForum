@@ -56,8 +56,12 @@ class NodeManager(models.Manager):
         pass
 
 class NotiManager(models.Manager):
-    pass
-
+    def get_noti_by_user(self,uid,current_page=1,num=20):
+        count=self.get_queryset().filter(involved_user__id=uid).count()
+        page=Pages(count,current_page,num)
+        notis=self.get_queryset().select_related('trigger_user', 'involved_topic')\
+            .filter(involved_user__id=uid).order_by('-id')[page.start:page.end]
+        return notis,page
 class ReplyManager(models.Manager):
     '''
         获得所有的回复

@@ -4,6 +4,7 @@ from django.contrib import admin
 
 from forum.views import topic
 from forum.views import user
+from forum.views import notifications
 urlpatterns = [
     url(r'^$',topic.index,name='index'),
     url(r'^register/$',user.register,name='register'),
@@ -20,10 +21,12 @@ urlpatterns = [
     url(r'^node/(.*)/$',topic.node_topics,name='node_topics'),
     url(r'^u/(.*)/topics/$',topic.user_topics,name='user_topics'),
     url(r'^u/(.*)/replies/$',topic.user_replies,name='user_replies'),
+    url(r'^u/(.*)/favorites/$',topic.favorite,name='favorites'),
     url(r'^u/(.*)/$',topic.profile,name='profile'),
     url(r'^favorite/$',topic.favorite_add,name='favorite_add'),
     url(r'^unfavorite/$',topic.favorite_del,name='favorite_del'),
     url(r'^members/$',topic.members,name='members'),
     url(r'^vote/$',topic.vote,name='vote'),
+    url(r'^notifications/$',notifications.notifications,name='notifications'),
     url(r'^admin/', admin.site.urls),
 ]

@@ -7,13 +7,17 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from common import find_mentions
+from tools import user_info,update_reputation
 import json
 
 
 def index(request):
+    '''
+        显示首页
+    '''
     user = request.user
     if request.user.is_authenticated():
-        counter, notifications_count = user_info(request)
+        counter, notifications_count = user_info(request.user)
     status_counter = {
         'users': User.objects.all().count(),
         'nodes': Node.objects.all().count(),
@@ -25,7 +29,7 @@ def index(request):
     except ValueError:
         current_page = 1
     if request.user.is_authenticated():
-        counter, notifications_count = user_info(request)
+        counter, notifications_count = user_info(request.user)
     hot_nodes = Node.objects.all()
     topics, topic_page = Topic.objects.get_all_topic(current_page=current_page)
     planes = Plane.objects.all().prefetch_related('node_set')
@@ -56,12 +60,11 @@ def topic_create(request, slug):
     user = request.user
     # 发帖查重
     if request.user.is_authenticated():
-        counter, notifications_count = user_info(request)
+        counter, notifications_count = user_info(request.user)
     active_page = 'topic'
     node_slug = node.slug
     update_reputation(user.id, -5)
     return render(request, 'topic/create.html', locals())
-
 
 def reply_create(request, t_id):
     '''
@@ -77,18 +80,49 @@ def reply_create(request, t_id):
         form = ReplyForm(request.POST)
         if form.is_valid():
             user = request.user
+            now = timezone.now()
+            notifications = []
+            if user.id != topic.author_id:
+                notification = Notification(content=form.cleaned_data['content'],
+                                            status=0,
+                                            involved_type=1,
+                                            involved_user=topic.author,
+                                            involved_topic=topic,
+                                            trigger_user=user,
+                                            occurrence_time=now)
+                notifications.append(notification)
+            metions = find_mentions(form.cleaned_data['content'])
+            if user.username in metions:
+                metions.remove(user.username)
+            if topic.author.username in metions:
+                metions.remove(topic.author.username)
+            if metions:
+                metion_names = User.objects.filter(username__in=metions)
+                for username in metion_names:
+                    notification = Notification(content=form.cleaned_data['content'],
+                                                involved_topic=topic,
+                                                involved_user=user,
+                                                involved_type=0,
+                                                trigger_user=user,
+                                                occurrence_time=now)
+                    notifications.append(notification)
+            if notifications:  # 批量插入
+                Notification.objects.bulk_create(notifications)
             reply = Reply(content=form.cleaned_data['content'],
                           created=timezone.now(),
                           author=user,
                           topic=topic,
-                          last_touched=timezone.now())
+                          last_touched=now)
             reply.save()
-            return redirect(reverse('forum:reply_create', args=[topic.id]) + '#reply' + str(topic.reply_count + 1))
-    user = request.user
+            Topic.objects.filter(pk=topic.id).update(last_replied_by=user,last_replied_time=now,
+                                                     last_touched=now,reply_count=topic.reply_count+1)
+            topic.reply_count=topic.reply_count+1
+            return redirect(reverse('forum:reply_create', args=[topic.id]) + '#reply' + str(topic.reply_count))
 
+    user = request.user
     topic = Topic.objects.get(pk=t_id)
     if request.user.is_authenticated():
-        counter, notifications_count = user_info(request)
+        counter, notifications_count = user_info(request.user)
         topic_favorited = Favorite.objects.filter(involved_topic=topic, owner_user=user).exists()
     reply_last_page = (topic.reply_count // 20 + (topic.reply_count % 20 and 1)) or 1
     try:
@@ -116,8 +150,7 @@ def reply_edit(request, id):
                     return redirect(reverse('forum:reply', args=[reply.topic.id]))
         else:
             errors = {'invalid_permission': [u'没有权限修改该回复']}
-    if request.user.is_authenticated():
-        counter, notifications_count = user_info(request)
+    counter, notifications_count = user_info(request.user)
     update_reputation(user.id, -2)
     active_page = 'topic'
     return render(request, 'topic/reply_edit.html', locals())
@@ -138,8 +171,7 @@ def topic_edit(request, t_id):
                 return redirect(reverse('forum:index'))
         else:
             errors = {'invalid_permission': [u'没有权限修改该回复']}
-    if request.user.is_authenticated():
-        counter, notifications_count = user_info(request)
+    counter, notifications_count = user_info(request.user)
     update_reputation(user.id, -2)
     return render(request, 'topic/edit.html', locals())
 
@@ -151,8 +183,7 @@ def node_topics(request, slug):
     node = get_object_or_404(Node, slug=slug)
     user = request.user
     if request.user.is_authenticated():
-        counter, notifications_count = user_info(request)
-        # noti
+        counter, notifications_count = user_info(request.user)
     try:
         current_page = int(request.GET.get('p', 1))
     except ValueError:
@@ -175,9 +206,10 @@ def user_topics(request, uid):
         current_page = int(request.GET.get('p', 1))
     except ValueError:
         current_page = 1
+
+    counter=user_info(user)[0]
     if request.user.is_authenticated():
-        counter, notifications_count = user_info(request)
-        # noti
+        _,notifications_count = user_info(request.user)
 
     topics, topic_page = Topic.objects.get_topics_by_user(user.id, current_page=current_page)
     active_page = 'topic'
@@ -196,8 +228,9 @@ def user_replies(request, uid):
         current_page = int(request.GET.get('p', 1))
     except ValueError:
         current_page = 1
+    counter = user_info(user)[0]
     if request.user.is_authenticated():
-        counter, notifications_count = user_info(request)
+        _, notifications_count = user_info(request.user)
     replies, reply_page = Reply.objects.get_replies_by_user(user.id, current_page=current_page)
     active_page = 'topic'
     return render(request, 'topic/user_replies.html', locals())
@@ -216,8 +249,9 @@ def profile(request, uid):
         current_page = int(request.GET.get('p', 1))
     except ValueError:
         current_page = 1
+    counter = user_info(user)[0]
     if request.user.is_authenticated():
-        counter, notifications_count = user_info(request)
+        _, notifications_count = user_info(request.user)
     topics, topic_page = Topic.objects.get_topics_by_user(user.id, current_page=current_page)
     replies, reply_page = Reply.objects.get_replies_by_user(user.id, current_page=current_page)
     active_page = '_blank'
@@ -225,17 +259,20 @@ def profile(request, uid):
 
 
 def favorite(request, uid):
+    '''
+        获得用户收藏
+    '''
     if uid.isdigit():
         user = get_object_or_404(User, pk=uid)
     else:
         user = get_object_or_404(User, username=uid)
-
     try:
         current_page = int(request.GET.get('p', 1))
     except ValueError:
         current_page = 1
+    counter = user_info(user)[0]
     if request.user.is_authenticated():
-        counter, notifications_count = user_info(request)
+        _, notifications_count = user_info(request.user)
     favorites, page = Favorite.objects.get_fav_by_user(user.id, current_page)
     return render(request, 'topic/user_favorites.html', locals())
 
@@ -353,32 +390,11 @@ def members(request):
         获得所有的成员信息
     '''
     if request.user.is_authenticated():
-        counter, notifications_count = user_info(request)
+        counter, notifications_count = user_info(request.user)
     members = User.objects.all().order_by('-id')[:49]
     active_members = User.objects.all().order_by('-last_login')[:49]
     active_page = 'members'
     return render(request, 'topic/members.html', locals())
 
-
-def user_info(request):
-    '''
-        获得当前的用户信息
-    '''
-    user = request.user
-    if user.is_authenticated():
-        counter = {
-            'topics': user.topic_author.all().count(),
-            'replies': user.reply_author.all().count(),
-            'favorites': user.fav_user.all().count()
-        }
-        notifications_count = user.notify_user.filter(status=0).count()
-        return counter, notifications_count
-
-
-def update_reputation(uid, diff):
-    '''
-        更新声誉
-    '''
-    user = User.objects.get(pk=uid)
-    user.reputation = user.reputation + diff
-    user.save()
+def notifications(request):
+    pass
